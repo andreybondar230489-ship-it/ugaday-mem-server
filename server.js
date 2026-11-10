@@ -25,7 +25,7 @@ server.on('upgrade',(req,socket,head)=>{
   try {
     const url=new URL(req.url,'http://localhost');
     if(url.pathname!=='/host') {socket.destroy();return;}
-    if(!uniform(url.searchParams.get('secret')||'',secret)) {socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');socket.destroy();return;}
+    if(!uniform((req.headers.authorization||'').replace(/^Bearer\s+/i,'') || url.searchParams.get('secret')||'',secret)) {socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');socket.destroy();return;}
     wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws));
   }catch(_){socket.destroy();}
 });
@@ -63,7 +63,7 @@ app.use('/play/:session',express.raw({type:'*/*',limit:'8mb'}),(req,res)=>{
   waiting.set(id,{session,res,timer});
   const forwardPath=req.originalUrl.slice(('/play/'+session).length)||'/';
   const b=Buffer.isBuffer(req.body)?req.body:Buffer.alloc(0);
-  ws.send(JSON.stringify({type:'request',id,method:req.method,path:forwardPath,contentType:req.get('content-type')||'',body:b.toString('base64')}),err=>{
+  ws.send(JSON.stringify({type:'request',id,method:req.method,path:forwardPath,contentType:req.get('content-type')||'',playerId:(req.get('x-player')||'').slice(0,100),body:b.toString('base64')}),err=>{
     if(err&&waiting.has(id)){waiting.delete(id);clearTimeout(timer);res.status(502).send('Host unavailable');}
   });
 });
