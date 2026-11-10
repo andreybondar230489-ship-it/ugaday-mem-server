@@ -1,0 +1,9 @@
+{
+  "name": "ugaday-mem-https-relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Temporary HTTPS relay for the Ugaday Mem host phone",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "express": "^4.21.2", "ws": "^8.18.0" }
+}
